@@ -1,0 +1,328 @@
+{
+    "openapi": "3.0.3", 
+    "info": { 
+      "title": "Message Board API", 
+      "version": "1.0" 
+    },
+
+
+    "components": {
+      "securitySchemes":{
+        "bearerAuth":{
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+        "schemas":{
+            "message":{
+                "type": "object", 
+                "description": "A message", 
+                "required": [ 
+                "name", 
+                "msgText" 
+                ], 
+                "properties": { 
+                    "name": { 
+                        "type": "string", 
+                        "description": "Name of User who created the message.", 
+                        "example": "Fred" 
+                    }, 
+                    "msgText": { 
+                        "type": "string", 
+                        "description": "A message.", 
+                        "example": "Hello World!" 
+                    } 
+                }
+            },
+            "user":{
+              "type": "object",
+              "required":[
+                "email",
+                "username",
+                "password"
+              ],
+              "properties":{
+                "email":{
+                  "type":"string",
+                  "format":"email",
+                  "description": "Users email address", 
+                  "example": "fakeEmail@telus.net"
+                },
+                "username":{
+                  "type":"string",
+                  "description": "The id name of the user ", 
+                  "example": "PotatoeCannonSupreme",
+                  "minLength": 8,
+                  "maxLength": 50
+                },
+                "password":{
+                  "type":"string",
+                  "minLength": 8,
+                  "maxLength": 64,
+                  "description": "Never share your password", 
+                  "example": "************",
+                  "format": "password"
+                }
+              }
+            },
+
+
+            "login":{
+              "type": "object",
+              "required":[
+                "username",
+                "password"
+              ],
+              "properties":{
+                
+                "username":{
+                  "type":"string",
+                  "description": "The user name of the person attempting to log in", 
+                  "example": "PotatoeCannonSupreme",
+                  "maxLength": 64
+                },
+                "password":{
+                  "type":"string",
+                  "maxLength": 64,
+                  "description": "Never share your password", 
+                  "example": "************",
+                  "format": "password"
+                }
+              }
+            },
+
+
+            "labs":{
+              "type": "object", 
+              "description": "labs", 
+              
+              "properties": { 
+
+                  "labID":{
+                    "type": "string", 
+                      "description": "Lab number", 
+                      "example": "0" 
+                  },
+
+
+                  "labNo": { 
+                      "type": "string", 
+                      "description": "Lab number", 
+                      "example": "0" 
+                  }, 
+                  "labTopic": { 
+                      "type": "string", 
+                      "description": "Topic of lab", 
+                      "example": "This lab is on APIs" 
+                  } 
+              }
+          }
+
+        
+    },
+    "responses": {
+      "429TooManyRequests": {
+        "description": "To many requests."
+      }
+    }
+
+  },
+
+
+
+    "paths": {
+        "/messages": { 
+        "description": "All the messages", 
+        "get": { 
+          "summary": "List all the messages", 
+          "description": "List all the messages in the order they were posted (newest at top).",
+          "responses":{
+            "400": { 
+                "description": "Bad Request" 
+              }, 
+            "200": {
+                "content": { 
+                    "application/json": { 
+                      "schema": { 
+                        "type": "array", 
+                        "items": { 
+                          "$ref": "#/components/schemas/message" 
+                        } 
+                      } 
+                    } 
+                  },      
+              "description": "All the messages" 
+            },
+            "429": {
+              "$ref": "#/components/responses/429TooManyRequests"
+            } 
+          }
+        },
+        "post":{
+          "security":[
+            {"bearerAuth": []}
+          ],
+          "summary": "Post a new Message message", 
+          "description": "Makes a new message.",
+          "responses":{
+            "401": { 
+                "description": "Bad Request" 
+              }
+          }
+      }
+    },
+
+
+      "/users": { 
+          "description": "all the users", 
+          "post": { 
+            "summary": "Created a new user", 
+            "description": "will add new user",
+            "requestBody": { 
+                "description": "user data", 
+                "content": { 
+                  "application/json": { 
+                    "schema": { 
+                      "$ref": "#/components/schemas/user" 
+                    } 
+                  } 
+                } 
+              },
+            "responses":{ 
+              "400": { 
+                    "description": "Bad Request. The message in the body of the request is either missing or malformed" 
+                  }, 
+              "201": { 
+                "content": { 
+                    "application/json": { 
+                      "schema": { 
+                        "$ref": "#/components/schemas/user" 
+                      } 
+                    } 
+                },
+                "description": "Created" 
+              },
+              "429": {
+                "$ref": "#/components/responses/429TooManyRequests"
+              }
+            }
+          } 
+      },
+
+      "/login":{
+        "description": "Login",
+        "post": { 
+          "summary": "Login with user", 
+          "description": "User Login",
+          "requestBody": { 
+            "description": "user data", 
+            "content": { 
+              "application/json": { 
+                "schema": { 
+                  "$ref": "#/components/schemas/user" 
+                } 
+              } 
+            } 
+          },
+          "responses":{ 
+            "200": {
+              "description": "Successfully logged in.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "description": "JWT Token",
+                    "properties": {
+                      "token": {
+                        "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+            
+            "400": {
+              "description": "Bad request",
+                  "content":{
+                    "application/json":{
+                      "schema":{
+                        "type": "object",
+                        "description": "Request is missing some data",
+                        "properties":{
+                          "token":{
+                            "type": "string"
+                          }
+                        }
+                    }
+                  }
+                }
+          },
+
+          "402": {
+            "description": "Username or password dont match",
+                "content":{
+                  "application/json":{
+                    "schema":{
+                      "type": "object",
+                      "description": "Username or password dont match",
+                      "properties":{
+                        "token":{
+                          "type": "string"
+                        }
+                      }
+                  }
+                }
+              }
+          },
+          "429":{
+            "description": "To many requests",
+                "content":{
+                  "application/json":{
+                    "schema":{
+                      "type": "object",
+                      "description": "To many requests",
+                      "properties":{
+                        "token":{
+                          "type": "string"
+                        }
+                      }
+                  }
+                }
+              }
+          }
+        }
+         
+        } 
+      },
+      "/labs":{
+
+        
+        "description": "All of our labs", 
+        "get": { 
+          "summary": "List of all our labs", 
+          "description": "List of all of our labs completed up to midterm in 221.",
+          "responses":{
+            "400": { 
+                "description": "Bad Request" 
+              }, 
+            "200": {
+                "content": { 
+                    "application/json": { 
+                      "schema": { 
+                        "type": "array", 
+                        "items": { 
+                          "$ref": "#/components/schemas/labs" 
+                        } 
+                      } 
+                    } 
+                  },      
+              "description": "All the labs" 
+            } 
+          }
+        }
+      }
+    }
+  } 
+
